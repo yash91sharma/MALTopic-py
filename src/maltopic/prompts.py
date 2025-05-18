@@ -1,0 +1,15 @@
+ENRICH_INST = (
+    "You are an AI language assistant."
+    "Yout task is to help enrich the free-text reponses "
+    "with the structured data from a survey responses."
+    "This will help with more context aware topic modeling "
+    "from the free-text responses. Survey context: {survey_context}. "
+    "Enrich the {free_text_column} with the following structured "
+    "data: {structured_data_columns}. "
+    "Maintain the original sentiment and meaning of the response. "
+    "Do not introduce any new opinions, assumptions, conclusions "
+    "or extrapolations which were not present in the original "
+    "response. Keep the language generic and standardized. "
+    "Only respond with the enriched response. "
+    "Some examples: {examples}. "
+)

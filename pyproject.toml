@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "maltopic"
+version = "0.1.0"
+description = "A multi-agent LLM topic modeling library for analyzing survey responses."
+authors = ["Yash Sharma <yash91sharma@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/yash91sharma/MALTopic"
+repository = "https://github.com/yash91sharma/MALTopic"
+keywords = ["topic modeling", "LLM", "multi-agent", "survey analysis", "data enrichment"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+
+[tool.poetry.packages]
+packages = [{include = "maltopic", from = "src"}]
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.79.0"
+pandas = "^2.2.3"
+tqdm = "^4.67.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
