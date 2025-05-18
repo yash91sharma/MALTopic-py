@@ -25,12 +25,10 @@ To use the MALTopic library, you need to initialize the main class with your API
 from maltopic import MALTopic
 
 # Initialize the MALTopic class
-mal_topic = MALTopic(api_key='your_api_key', model_name='openai', llm_type='openai')
+mal_topic = MALTopic(api_key='your_api_key', model_name='gpt-4o-mini', llm_type='openai')
 
 # Call individual agent functions
-enriched_data = mal_topic.enrichment_agent(data)
-topics = mal_topic.topic_modeling_agent(enriched_data)
-refined_topics = mal_topic.deduplication_agent(topics)
+# TODO: Add examples of use
 ```
 
 ## Agents
@@ -46,3 +44,15 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## Citation
+
+If you use MALTopic in your research, please cite:
+
+```bibtex
+@software{Sharma2025maltopic,
+  author = {Sharma, Yash},
+  title = {MALTopic: A library for topic modeling},
+  year = {2025},
+  url = {https://github.com/yash91sharma/MALTopic-py}
+}
