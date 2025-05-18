@@ -86,3 +86,8 @@ class MALTopic:
 
         df[enriched_column] = results
         return df
+
+    def generate_topics(
+        self, survey_context: str, df: pd.DataFrame, enriched_column: str
+    )-> list[dict[str, str]]:
+        return []
