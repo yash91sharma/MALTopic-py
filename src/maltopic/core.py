@@ -1,5 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
+import json
 
 from . import prompts, utils
 
@@ -89,5 +90,59 @@ class MALTopic:
 
     def generate_topics(
         self, survey_context: str, df: pd.DataFrame, enriched_column: str
-    )-> list[dict[str, str]]:
-        return []
+    ) -> list[dict[str, str]]:
+        """
+        Generate topics from enriched text responses.
+
+        Args:
+            survey_context: Context about the survey to provide to the LLM
+            df: Pandas DataFrame containing the data
+            enriched_column: Name of the column containing enriched text responses
+
+        Returns:
+            List of dictionaries, each representing a topic with 'id', 'name', and 'description'
+        """
+        utils.validate_dataframe(df, [enriched_column])
+
+        instructions = prompts.TOPIC_INST.format(survey_context=survey_context)
+
+        all_columns: list[str] = df[enriched_column].dropna().tolist()
+        labeled_columns = [
+            f"{i+1}: {response}" for i, response in enumerate(all_columns)
+        ]
+        input_text = "\n\n".join(labeled_columns)
+
+        try:
+            raw_response = self.llm_client.generate(
+                instructions=instructions, input=input_text
+            )
+        except Exception as e:
+            raise RuntimeError(f"Error generating topics: {str(e)}")
+
+        topics = []
+
+        try:
+            parsed_topics = json.loads(raw_response)
+            for topic in parsed_topics:
+                # Convert representative_words to string if it's a list
+                if "representative_words" in topic and isinstance(
+                    topic["representative_words"], list
+                ):
+                    topic["representative_words"] = ", ".join(
+                        topic["representative_words"]
+                    )
+
+                # Ensure all values are strings
+                for key in topic:
+                    if not isinstance(topic[key], str):
+                        topic[key] = str(topic[key])
+
+                topics.append(topic)
+        except json.JSONDecodeError:
+            raise ValueError(
+                f"Failed to parse LLM response as JSON: {raw_response[:100]}..."
+            )
+        except Exception as e:
+            raise ValueError(f"Error processing topics: {str(e)}")
+
+        return topics

@@ -14,9 +14,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
-
-
-[tool.poetry.packages]
 packages = [{include = "maltopic", from = "src"}]
 
 
