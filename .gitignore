@@ -1,8 +1,10 @@
-echo "__pycache__/" >> .gitignore
-echo "*.py[cod]" >> .gitignore
-echo "*$py.class" >> .gitignore
-echo "dist/" >> .gitignore
-echo "build/" >> .gitignore
-echo "*.egg-info/" >> .gitignore
-echo ".pytest_cache/" >> .gitignore
-echo ".coverage" >> .gitignore
+__pycache__/
+*.py[cod]
+*$py.class
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+*.pyc
+__pycache__/

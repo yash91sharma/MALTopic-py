@@ -11,11 +11,22 @@ class OpenAIClient:
         self.top_p = 0.9
 
     def generate(self, *, instructions: str, input: str) -> str:
-        response = self.client.responses.create(
+        response = self.client.chat.completions.create(
             model=self.model_name,
-            instructions=instructions,
-            input=input,
+            store=False,
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": input},
+            ],
             temperature=self.temperature,
             top_p=self.top_p,
+            seed=self.seed,
         )
-        return response.output_text
+        if not response or not response.choices:
+            raise ValueError("No response received from OpenAI API.")
+        if not response.choices[0].message:
+            raise ValueError("No message in the response from OpenAI API.")
+        content = response.choices[0].message.content
+        if content is None:
+            raise ValueError("No content in the response message from OpenAI API.")
+        return content
