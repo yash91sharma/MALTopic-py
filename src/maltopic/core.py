@@ -23,9 +23,9 @@ class MALTopic:
 
     def enrich_free_text_with_structured_data(
         self,
+        *,
         survey_context: str,
         free_text_column: str,
-        free_text_definition: str,
         structured_data_columns: list[str],
         df: pd.DataFrame,
         examples: list[str] = [],
@@ -49,7 +49,6 @@ class MALTopic:
         instructions: str = prompts.ENRICH_INST.format(
             survey_context=survey_context,
             free_text_column=free_text_column,
-            free_text_definition=free_text_definition,
             structured_data_columns=", ".join(structured_data_columns),
             examples="\n".join(examples) if examples else "No examples provided.",
         )

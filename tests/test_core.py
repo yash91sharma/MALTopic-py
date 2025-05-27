@@ -48,7 +48,7 @@ class TestMALTopic:
     @patch("src.maltopic.core.utils.validate_dataframe")
     @patch(
         "src.maltopic.core.prompts.ENRICH_INST",
-        "enrich inst {survey_context} {free_text_column} {free_text_definition} {structured_data_columns} {examples}",
+        "enrich inst {survey_context} {free_text_column} {structured_data_columns} {examples}",
     )
     def test_enrich_free_text_with_structured_data_success(
         self, mock_validate, sample_df
@@ -60,7 +60,6 @@ class TestMALTopic:
         out = m.enrich_free_text_with_structured_data(
             survey_context="ctx",
             free_text_column="feedback",
-            free_text_definition="def",
             structured_data_columns=["age", "gender"],
             df=df,
             examples=["ex1", "ex2"],
@@ -73,7 +72,7 @@ class TestMALTopic:
     @patch("src.maltopic.core.utils.validate_dataframe")
     @patch(
         "src.maltopic.core.prompts.ENRICH_INST",
-        "enrich inst {survey_context} {free_text_column} {free_text_definition} {structured_data_columns} {examples}",
+        "enrich inst {survey_context} {free_text_column} {structured_data_columns} {examples}",
     )
     def test_enrich_handles_empty_and_exception(self, mock_validate, sample_df):
         m = MALTopic.__new__(MALTopic)
@@ -84,7 +83,6 @@ class TestMALTopic:
         out = m.enrich_free_text_with_structured_data(
             survey_context="ctx",
             free_text_column="feedback",
-            free_text_definition="def",
             structured_data_columns=["age"],
             df=df,
         )
