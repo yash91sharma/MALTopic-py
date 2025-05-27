@@ -124,19 +124,11 @@ class MALTopic:
         try:
             parsed_topics = json.loads(raw_response)
             for topic in parsed_topics:
-                # Convert representative_words to string if it's a list
-                if "representative_words" in topic and isinstance(
-                    topic["representative_words"], list
-                ):
-                    topic["representative_words"] = ", ".join(
-                        topic["representative_words"]
-                    )
-
-                # Ensure all values are strings
                 for key in topic:
-                    if not isinstance(topic[key], str):
+                    if key != "representative_words" and not isinstance(
+                        topic[key], str
+                    ):
                         topic[key] = str(topic[key])
-
                 topics.append(topic)
         except json.JSONDecodeError:
             raise ValueError(
