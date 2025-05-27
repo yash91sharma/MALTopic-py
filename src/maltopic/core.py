@@ -89,13 +89,13 @@ class MALTopic:
         return df
 
     def generate_topics(
-        self, survey_context: str, df: pd.DataFrame, enriched_column: str
+        self, *, topic_mining_context: str, df: pd.DataFrame, enriched_column: str
     ) -> list[dict[str, str]]:
         """
         Generate topics from enriched text responses.
 
         Args:
-            survey_context: Context about the survey to provide to the LLM
+            topic_mining_context: Context about the survey to provide to the LLM. Add the what and why of the topic mining to make this useful.
             df: Pandas DataFrame containing the data
             enriched_column: Name of the column containing enriched text responses
 
@@ -104,7 +104,7 @@ class MALTopic:
         """
         utils.validate_dataframe(df, [enriched_column])
 
-        instructions = prompts.TOPIC_INST.format(survey_context=survey_context)
+        instructions = prompts.TOPIC_INST.format(survey_context=topic_mining_context)
 
         all_columns: list[str] = df[enriched_column].dropna().tolist()
         labeled_columns = [
