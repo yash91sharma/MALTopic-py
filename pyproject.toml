@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "maltopic"
-version = "0.1.0"
-description = "A multi-agent LLM topic modeling library for analyzing survey responses."
+version = "1.0.0"
+description = "A multi-agent LLM topic modeling library."
 authors = ["Yash Sharma <yash91sharma@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/yash91sharma/MALTopic"
-repository = "https://github.com/yash91sharma/MALTopic"
+homepage = "https://github.com/yash91sharma/MALTopic-py"
+repository = "https://github.com/yash91sharma/MALTopic-py"
 keywords = ["topic modeling", "LLM", "multi-agent", "survey analysis", "data enrichment"]
 classifiers = [
     "Programming Language :: Python :: 3",
