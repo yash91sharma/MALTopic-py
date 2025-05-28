@@ -27,7 +27,7 @@ To use the MALTopic library, you need to initialize the main class with your API
 from maltopic import MALTopic
 
 # Initialize the MALTopic class
-mal_topic = client = MALTopic(
+client = MALTopic(
     api_key="your_api_key",
     default_model_name="gpt-4.1-nano",
     llm_type="openai",
