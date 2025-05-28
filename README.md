@@ -2,6 +2,8 @@
 
 MALTopic is a powerful library designed for topic modeling using a multi-agent approach. It leverages the capabilities of large language models (LLMs) to enhance the analysis of survey responses by integrating structured and unstructured data.
 
+MALTopic as a research paper was published in 2025 World AI IoT Congress. Links here.
+
 ## Features
 
 - **Multi-Agent Framework**: Decomposes topic modeling into specialized tasks executed by individual LLM agents.
@@ -25,17 +27,34 @@ To use the MALTopic library, you need to initialize the main class with your API
 from maltopic import MALTopic
 
 # Initialize the MALTopic class
-mal_topic = MALTopic(api_key='your_api_key', model_name='gpt-4o-mini', llm_type='openai')
+mal_topic = client = MALTopic(
+    api_key="your_api_key",
+    default_model_name="gpt-4.1-nano",
+    llm_type="openai",
+)
 
-# Call individual agent functions
-# TODO: Add examples of use
+enriched_df = client.enrich_free_text_with_structured_data(
+        survey_context="context about survey, why, how of it...",
+        free_text_column="column_1",
+        structured_data_columns=["columns_2", "column_3"],
+        df=df,
+        examples=["free text response, category 1 -> free text response with additional context", "..."], # optional
+    )
+
+topics = client.generate_topics(
+        topic_mining_context="context about what kind of topics you want to mine",
+        df=enriched_df,
+        enriched_column="column_1" + "_enriched", # MALTopic adds _enriched as the suffix.
+    )
+
+print(topics)
 ```
 
 ## Agents
 
 - **Enrichment Agent**: Enhances free-text responses using structured data.
 - **Topic Modeling Agent**: Extracts latent themes from enriched responses.
-- **Deduplication Agent**: Refines and consolidates the extracted topics.
+- **Deduplication Agent**: Refines and consolidates the extracted topics. (not supported yet)
 
 ## Contributing
 
