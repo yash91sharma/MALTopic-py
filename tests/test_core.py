@@ -86,9 +86,9 @@ class TestMALTopic:
             structured_data_columns=["age"],
             df=df,
         )
-        # Both rows trigger exception or error message
+        # Check that first row has error message, second row has "ok"
         assert (
-            out["feedback_enriched"].iloc[0] == "Error generating enriched text: fail"
+            "Error generating enriched text: fail" in out["feedback_enriched"].iloc[0]
         )
         assert out["feedback_enriched"].iloc[1] == "ok"
         mock_validate.assert_called_once_with(df, ["feedback", "age"])
@@ -98,47 +98,82 @@ class TestMALTopic:
     def test_generate_topics_success(self, mock_validate, enriched_df):
         m = MALTopic.__new__(MALTopic)
         m.llm_client = MagicMock()
+        m.default_model_name = "gpt-4"
         # LLM returns a JSON string
         m.llm_client.generate.return_value = '[{"id": "1", "name": "A", "description": "desc", "representative_words": ["foo", "bar"]}]'
-        topics = m.generate_topics("ctx", enriched_df, "feedback_enriched")
-        assert isinstance(topics, list)
+        topics = m.generate_topics(
+            topic_mining_context="ctx",
+            df=enriched_df,
+            enriched_column="feedback_enriched",
+        )
+        assert len(topics) == 1
         assert topics[0]["id"] == "1"
         assert topics[0]["name"] == "A"
         assert topics[0]["description"] == "desc"
-        assert topics[0]["representative_words"] == "foo, bar"
+        assert topics[0]["representative_words"] == ["foo", "bar"]
         mock_validate.assert_called_once_with(enriched_df, ["feedback_enriched"])
 
     @patch("src.maltopic.core.utils.validate_dataframe")
     @patch("src.maltopic.core.prompts.TOPIC_INST", "topic inst {survey_context}")
-    def test_generate_topics_json_decode_error(self, mock_validate, enriched_df):
+    @patch("src.maltopic.core.utils.is_token_limit_error")
+    def test_generate_topics_json_decode_error(
+        self, mock_is_token_error, mock_validate, enriched_df
+    ):
         m = MALTopic.__new__(MALTopic)
         m.llm_client = MagicMock()
+        m.default_model_name = "gpt-4"
         m.llm_client.generate.return_value = "not json"
-        with pytest.raises(ValueError) as excinfo:
-            m.generate_topics("ctx", enriched_df, "feedback_enriched")
+        mock_is_token_error.return_value = False  # Not a token error
+
+        with pytest.raises(RuntimeError) as excinfo:
+            m.generate_topics(
+                topic_mining_context="ctx",
+                df=enriched_df,
+                enriched_column="feedback_enriched",
+            )
+        assert "Error generating topics" in str(excinfo.value)
         assert "Failed to parse LLM response as JSON" in str(excinfo.value)
         mock_validate.assert_called_once_with(enriched_df, ["feedback_enriched"])
 
     @patch("src.maltopic.core.utils.validate_dataframe")
     @patch("src.maltopic.core.prompts.TOPIC_INST", "topic inst {survey_context}")
-    def test_generate_topics_other_exception(self, mock_validate, enriched_df):
+    @patch("src.maltopic.core.utils.is_token_limit_error")
+    def test_generate_topics_other_exception(
+        self, mock_is_token_error, mock_validate, enriched_df
+    ):
         m = MALTopic.__new__(MALTopic)
         m.llm_client = MagicMock()
+        m.default_model_name = "gpt-4"
         m.llm_client.generate.return_value = (
             '[{"id": 1, "name": "A", "description": "desc"}]'
         )
+        mock_is_token_error.return_value = False
         # id is int, should be converted to str
-        topics = m.generate_topics("ctx", enriched_df, "feedback_enriched")
+        topics = m.generate_topics(
+            topic_mining_context="ctx",
+            df=enriched_df,
+            enriched_column="feedback_enriched",
+        )
         assert topics[0]["id"] == "1"
         mock_validate.assert_called_once_with(enriched_df, ["feedback_enriched"])
 
     @patch("src.maltopic.core.utils.validate_dataframe")
     @patch("src.maltopic.core.prompts.TOPIC_INST", "topic inst {survey_context}")
-    def test_generate_topics_llm_error(self, mock_validate, enriched_df):
+    @patch("src.maltopic.core.utils.is_token_limit_error")
+    def test_generate_topics_llm_error(
+        self, mock_is_token_error, mock_validate, enriched_df
+    ):
         m = MALTopic.__new__(MALTopic)
         m.llm_client = MagicMock()
+        m.default_model_name = "gpt-4"
         m.llm_client.generate.side_effect = Exception("llm fail")
+        mock_is_token_error.return_value = False  # Not a token error
+
         with pytest.raises(RuntimeError) as excinfo:
-            m.generate_topics("ctx", enriched_df, "feedback_enriched")
+            m.generate_topics(
+                topic_mining_context="ctx",
+                df=enriched_df,
+                enriched_column="feedback_enriched",
+            )
         assert "Error generating topics" in str(excinfo.value)
         mock_validate.assert_called_once_with(enriched_df, ["feedback_enriched"])

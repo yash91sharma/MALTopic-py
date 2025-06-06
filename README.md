@@ -10,6 +10,8 @@ MALTopic as a research paper was published in 2025 World AI IoT Congress. Links 
 - **Data Enrichment**: Enhances textual responses using structured and categorical survey data.
 - **Latent Theme Extraction**: Extracts meaningful topics from enriched responses.
 - **Topic Deduplication**: Refines and consolidates identified topics for better interpretability.
+- **Automatic Batching**: Handles large datasets by automatically splitting data into manageable batches when token limits are exceeded.
+- **Intelligent Error Handling**: Detects token limit errors and seamlessly switches to batching mode without user intervention.
 
 ## Installation
 
@@ -50,11 +52,64 @@ topics = client.generate_topics(
 print(topics)
 ```
 
+## Automatic Batching for Large Datasets
+
+MALTopic v1.1.0 introduces intelligent automatic batching to handle large datasets that may exceed LLM token limits. This feature works seamlessly in the background:
+
+### How It Works
+
+1. **Automatic Detection**: When `generate_topics` encounters a token limit error, it automatically detects this and switches to batching mode.
+
+2. **Smart Splitting**: The library uses `tiktoken` (OpenAI's token counting library) to intelligently split your data into optimally-sized batches based on actual token counts.
+
+3. **Batch Processing**: Each batch is processed independently, with progress tracking to keep you informed.
+
+4. **Topic Consolidation**: Topics from all batches are automatically merged and deduplicated to provide a clean, comprehensive result.
+
+### Key Benefits
+
+- **No Code Changes Required**: Existing code works without modification - batching happens automatically when needed.
+- **Optimal Performance**: Uses actual token counting for precise batch sizing, maximizing efficiency.
+- **Robust Fallback**: Even works without `tiktoken` by falling back to simple batch splitting.
+- **Progress Visibility**: Shows batch processing progress so you know what's happening.
+- **Quality Preservation**: Maintains topic quality through intelligent consolidation and deduplication.
+
+### Example Output
+
+When batching is triggered, you'll see output like:
+```
+Token limit exceeded, splitting into batches...
+Processing 3 batches...
+Processing batches: 100%|██████████| 3/3 [00:45<00:00, 15.2s/it]
+Batch 1/3: Generated 12 topics
+Batch 2/3: Generated 8 topics  
+Batch 3/3: Generated 10 topics
+Consolidated 30 topics into 25 unique topics
+```
+
+This feature makes MALTopic suitable for processing large-scale survey datasets without worrying about token limitations.
+
 ## Agents
 
 - **Enrichment Agent**: Enhances free-text responses using structured data.
 - **Topic Modeling Agent**: Extracts latent themes from enriched responses.
 - **Deduplication Agent**: Refines and consolidates the extracted topics. (not supported yet)
+
+## Changelog
+
+### v1.1.0 (June 2025)
+- **NEW**: Automatic batching for large datasets that exceed LLM token limits
+- **NEW**: Intelligent token counting using tiktoken for optimal batch sizing
+- **NEW**: Automatic error detection and seamless fallback to batching mode
+- **NEW**: Topic consolidation and deduplication across batches
+- **NEW**: Progress tracking for batch processing operations
+- **IMPROVED**: Enhanced error handling and user feedback
+- **IMPROVED**: Graceful degradation when tiktoken is not available
+
+### v1.0.0 (May 2025)
+- Multi-agent framework for topic modeling
+- Data enrichment capabilities  
+- Basic topic extraction functionality
 
 ## Contributing
 
