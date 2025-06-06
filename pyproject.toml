@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "maltopic"
-version = "1.1.0"
+version = "1.2.0"
 description = "A multi-agent LLM topic modeling library."
 authors = ["Yash Sharma <yash91sharma@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/yash91sharma/MALTopic-py"
 repository = "https://github.com/yash91sharma/MALTopic-py"
-keywords = ["topic modeling", "LLM", "multi-agent", "survey analysis", "data enrichment"]
+keywords = ["topic modeling", "LLM", "multi-agent", "survey analysis", "data enrichment", "topic deduplication", "semantic analysis"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
 packages = [{include = "maltopic", from = "src"}]
-include = ["README.md", "LICENSE"]
+include = ["README.md", "LICENSE", "CHANGELOG.md"]
 
 
 [tool.poetry.dependencies]

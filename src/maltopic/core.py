@@ -115,144 +115,74 @@ class MALTopic:
         input_text = "\n\n".join(labeled_columns)
 
         try:
-            return self._generate_topics_from_text(instructions, input_text)
+            return utils.generate_topics_from_text(
+                self.llm_client, instructions, input_text
+            )
         except Exception as e:
             # Check if it's a token limit error
             if utils.is_token_limit_error(e):
                 print(f"Token limit exceeded, splitting into batches...")
-                return self._generate_topics_with_batching(
-                    instructions, labeled_columns, topic_mining_context
+                return utils.generate_topics_with_batching(
+                    self.llm_client,
+                    instructions,
+                    labeled_columns,
+                    topic_mining_context,
+                    self.default_model_name,
                 )
             else:
                 raise RuntimeError(f"Error generating topics: {str(e)}")
 
-    def _generate_topics_from_text(
-        self, instructions: str, input_text: str
-    ) -> list[dict[str, str]]:
-        """
-        Generate topics from a single text input.
-
-        Args:
-            instructions: The instruction prompt for the LLM
-            input_text: The input text containing all responses
-
-        Returns:
-            List of topic dictionaries
-        """
-        raw_response = self.llm_client.generate(
-            instructions=instructions, input=input_text
-        )
-
-        return self._parse_topics_response(raw_response)
-
-    def _generate_topics_with_batching(
-        self, instructions: str, labeled_columns: list[str], topic_mining_context: str
-    ) -> list[dict[str, str]]:
-        """
-        Generate topics using batching when token limits are exceeded.
-
-        Args:
-            instructions: The instruction prompt for the LLM
-            labeled_columns: List of labeled response strings
-            topic_mining_context: Context for topic mining
-
-        Returns:
-            Consolidated list of topic dictionaries
-        """
-        try:
-            batches = utils.split_text_into_batches(
-                labeled_columns,
-                max_tokens_per_batch=100000,
-                model_name=self.default_model_name,
-            )
-        except ImportError:
-            # Fallback to simple batching if tiktoken is not available
-            batch_size = max(1, len(labeled_columns) // 4)  # Split into ~4 batches
-            batches = [
-                labeled_columns[i : i + batch_size]
-                for i in range(0, len(labeled_columns), batch_size)
-            ]
-
-        print(f"Processing {len(batches)} batches...")
-
-        all_topics = []
-
-        for i, batch in enumerate(tqdm(batches, desc="Processing batches")):
-            batch_input = "\n\n".join(batch)
-
-            try:
-                batch_topics = self._generate_topics_from_text(
-                    instructions, batch_input
-                )
-                all_topics.extend(batch_topics)
-                print(
-                    f"Batch {i+1}/{len(batches)}: Generated {len(batch_topics)} topics"
-                )
-            except Exception as e:
-                print(f"Error processing batch {i+1}: {str(e)}")
-                continue
-
-        return self._consolidate_topics(all_topics)
-
-    def _parse_topics_response(self, raw_response: str) -> list[dict[str, str]]:
-        """
-        Parse the LLM response into topic dictionaries.
-
-        Args:
-            raw_response: Raw JSON response from LLM
-
-        Returns:
-            List of topic dictionaries
-        """
-        topics = []
-
-        try:
-            parsed_topics = json.loads(raw_response)
-            for topic in parsed_topics:
-                for key in topic:
-                    if key != "representative_words" and not isinstance(
-                        topic[key], str
-                    ):
-                        topic[key] = str(topic[key])
-                topics.append(topic)
-        except json.JSONDecodeError:
-            raise ValueError(
-                f"Failed to parse LLM response as JSON: {raw_response[:100]}..."
-            )
-        except Exception as e:
-            raise ValueError(f"Error processing topics: {str(e)}")
-
-        return topics
-
-    def _consolidate_topics(
+    def deduplicate_topics(
         self,
-        all_topics: list[dict[str, str]],
+        *,
+        topics: list[dict[str, str]],
+        survey_context: str,
     ) -> list[dict[str, str]]:
         """
-        Consolidate topics from multiple batches, removing duplicates and merging similar ones.
+        Intelligently deduplicate topics using LLM to identify and merge overlapping topics.
 
-        This is a dumb(er) method. Use the dedup agent for a smarter consolidation.
+        This function uses the LLM to smartly combine topics that have significant overlap
+        and are not unique, while keeping genuinely unique topics as-is. It performs
+        semantic deduplication rather than simple string matching.
 
         Args:
-            all_topics: List of all topics from different batches
+            topics: List of topic dictionaries to deduplicate
+            survey_context: Context about the survey to help LLM make better decisions
 
         Returns:
-            Consolidated list of unique topics
+            List of deduplicated topic dictionaries with the same structure as input
         """
-        if not all_topics:
+        if not topics:
             return []
 
-        # Simple deduplication based on topic names
-        seen_names = set()
-        unique_topics = []
+        if len(topics) <= 1:
+            return topics.copy()
 
-        for topic in all_topics:
-            topic_name = topic.get("name", "").lower().strip()
-            if topic_name and topic_name not in seen_names:
-                seen_names.add(topic_name)
-                unique_topics.append(topic)
+        # Validate topic structure
+        utils.validate_topic_structure(topics)
 
-        print(
-            f"Consolidated {len(all_topics)} topics into {len(unique_topics)} unique topics"
-        )
-        return unique_topics
+        instructions = prompts.DEDUP_TOPICS_INST.format(survey_context=survey_context)
+
+        # Format topics for LLM processing
+        topics_json = json.dumps(topics, indent=2)
+
+        try:
+            raw_response = self.llm_client.generate(
+                instructions=instructions,
+                input=f"Topics to deduplicate:\n{topics_json}",
+            )
+
+            deduplicated_topics = utils.parse_topics_response(raw_response)
+
+            # Validate that the output maintains the same structure
+            utils.validate_topic_structure(deduplicated_topics)
+
+            print(
+                f"Deduplicated {len(topics)} topics into {len(deduplicated_topics)} unique topics"
+            )
+            return deduplicated_topics
+
+        except Exception as e:
+            print("Warning: Topic deduplication failed: {str(e)}")
+            print("Returning original topics without deduplication.")
+            return topics.copy()

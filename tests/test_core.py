@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -27,6 +28,54 @@ def enriched_df(sample_df):
         "App is slow (London, Female)",
     ]
     return df
+
+
+@pytest.fixture
+def sample_topics():
+    return [
+        {
+            "name": "Customer Service Quality",
+            "description": "Issues related to customer service experience",
+            "relevance": "All customer segments",
+            "representative_words": ["service", "support", "help", "staff"],
+        },
+        {
+            "name": "Service Quality",
+            "description": "Quality of service provided to customers",
+            "relevance": "General customer feedback",
+            "representative_words": ["quality", "service", "good", "bad"],
+        },
+        {
+            "name": "Product Features",
+            "description": "Feedback about product functionality and features",
+            "relevance": "Tech-savvy users",
+            "representative_words": ["features", "functionality", "product", "app"],
+        },
+        {
+            "name": "App Performance",
+            "description": "Issues with application speed and performance",
+            "relevance": "Mobile users",
+            "representative_words": ["slow", "fast", "performance", "speed"],
+        },
+    ]
+
+
+@pytest.fixture
+def unique_topics():
+    return [
+        {
+            "name": "Pricing",
+            "description": "Cost and pricing related feedback",
+            "relevance": "Budget-conscious customers",
+            "representative_words": ["price", "cost", "expensive", "cheap"],
+        },
+        {
+            "name": "User Interface",
+            "description": "Feedback about app design and usability",
+            "relevance": "All users",
+            "representative_words": ["design", "interface", "ui", "layout"],
+        },
+    ]
 
 
 class TestMALTopic:
@@ -177,3 +226,130 @@ class TestMALTopic:
             )
         assert "Error generating topics" in str(excinfo.value)
         mock_validate.assert_called_once_with(enriched_df, ["feedback_enriched"])
+
+    @patch("src.maltopic.core.prompts.DEDUP_TOPICS_INST", "dedup inst {survey_context}")
+    def test_deduplicate_topics_success(self, sample_topics):
+        m = MALTopic.__new__(MALTopic)
+        m.llm_client = MagicMock()
+
+        # Mock LLM response that merges overlapping topics
+        deduplicated_response = json.dumps(
+            [
+                {
+                    "name": "Customer Service Quality",
+                    "description": "Comprehensive feedback about service quality and customer experience",
+                    "relevance": "All customer segments, general feedback",
+                    "representative_words": [
+                        "service",
+                        "support",
+                        "help",
+                        "staff",
+                        "quality",
+                        "good",
+                        "bad",
+                    ],
+                },
+                {
+                    "name": "Product Features",
+                    "description": "Feedback about product functionality and features",
+                    "relevance": "Tech-savvy users",
+                    "representative_words": [
+                        "features",
+                        "functionality",
+                        "product",
+                        "app",
+                    ],
+                },
+                {
+                    "name": "App Performance",
+                    "description": "Issues with application speed and performance",
+                    "relevance": "Mobile users",
+                    "representative_words": ["slow", "fast", "performance", "speed"],
+                },
+            ]
+        )
+
+        m.llm_client.generate.return_value = deduplicated_response
+
+        result = m.deduplicate_topics(
+            topics=sample_topics, survey_context="Customer feedback survey"
+        )
+
+        assert len(result) == 3  # Should merge 2 similar topics into 1
+        assert result[0]["name"] == "Customer Service Quality"
+        assert "service quality and customer experience" in result[0]["description"]
+        assert len(result[0]["representative_words"]) == 7  # Merged words
+
+        # Verify LLM was called with correct parameters
+        m.llm_client.generate.assert_called_once()
+        call_args = m.llm_client.generate.call_args
+        assert "dedup inst Customer feedback survey" in call_args[1]["instructions"]
+        assert "Topics to deduplicate:" in call_args[1]["input"]
+
+    def test_deduplicate_topics_empty_list(self):
+        m = MALTopic.__new__(MALTopic)
+        result = m.deduplicate_topics(topics=[], survey_context="test")
+        assert result == []
+
+    def test_deduplicate_topics_single_topic(self, sample_topics):
+        m = MALTopic.__new__(MALTopic)
+        single_topic = [sample_topics[0]]
+        result = m.deduplicate_topics(topics=single_topic, survey_context="test")
+        assert result == single_topic
+        assert result is not single_topic  # Should return a copy
+
+    def test_deduplicate_topics_invalid_structure(self):
+        m = MALTopic.__new__(MALTopic)
+        invalid_topics = [
+            {"name": "Test1", "description": "Test desc1"},  # Missing required fields
+            {"name": "Test2", "description": "Test desc2"},  # Missing required fields
+        ]
+
+        with pytest.raises(ValueError) as excinfo:
+            m.deduplicate_topics(topics=invalid_topics, survey_context="test")
+        assert "missing required fields" in str(excinfo.value)
+
+    @patch("src.maltopic.core.prompts.DEDUP_TOPICS_INST", "dedup inst {survey_context}")
+    def test_deduplicate_topics_llm_failure_fallback(self, sample_topics):
+        m = MALTopic.__new__(MALTopic)
+        m.llm_client = MagicMock()
+        m.llm_client.generate.side_effect = Exception("LLM API error")
+
+        result = m.deduplicate_topics(topics=sample_topics, survey_context="test")
+
+        # Should return original topics unchanged when LLM fails
+        assert len(result) == 4  # Same as input
+        assert result == sample_topics  # Exact same content
+        assert result is not sample_topics  # But different object (copy)
+
+    @patch("src.maltopic.core.prompts.DEDUP_TOPICS_INST", "dedup inst {survey_context}")
+    def test_deduplicate_topics_invalid_llm_response(self, sample_topics):
+        m = MALTopic.__new__(MALTopic)
+        m.llm_client = MagicMock()
+        m.llm_client.generate.return_value = "invalid json response"
+
+        result = m.deduplicate_topics(topics=sample_topics, survey_context="test")
+
+        # Should return original topics unchanged when LLM response is invalid
+        assert len(result) == 4  # Same as input
+        assert result == sample_topics  # Exact same content
+
+    @patch("src.maltopic.core.prompts.DEDUP_TOPICS_INST", "dedup inst {survey_context}")
+    def test_deduplicate_topics_maintains_structure(self, sample_topics):
+        m = MALTopic.__new__(MALTopic)
+        m.llm_client = MagicMock()
+
+        # Mock response with same structure as input
+        m.llm_client.generate.return_value = json.dumps(sample_topics)
+
+        result = m.deduplicate_topics(topics=sample_topics, survey_context="test")
+
+        # Verify structure is maintained
+        for topic in result:
+            assert "name" in topic
+            assert "description" in topic
+            assert "relevance" in topic
+            assert "representative_words" in topic
+            assert isinstance(topic["name"], str)
+            assert isinstance(topic["description"], str)
+            assert isinstance(topic["relevance"], str)

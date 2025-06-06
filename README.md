@@ -9,7 +9,7 @@ MALTopic as a research paper was published in 2025 World AI IoT Congress. Links 
 - **Multi-Agent Framework**: Decomposes topic modeling into specialized tasks executed by individual LLM agents.
 - **Data Enrichment**: Enhances textual responses using structured and categorical survey data.
 - **Latent Theme Extraction**: Extracts meaningful topics from enriched responses.
-- **Topic Deduplication**: Refines and consolidates identified topics for better interpretability.
+- **Topic Deduplication**: Intelligently refines and consolidates identified topics using LLM-powered semantic analysis for better interpretability.
 - **Automatic Batching**: Handles large datasets by automatically splitting data into manageable batches when token limits are exceeded.
 - **Intelligent Error Handling**: Detects token limit errors and seamlessly switches to batching mode without user intervention.
 
@@ -49,7 +49,13 @@ topics = client.generate_topics(
         enriched_column="column_1" + "_enriched", # MALTopic adds _enriched as the suffix.
     )
 
-print(topics)
+# Optionally deduplicate and merge similar topics for cleaner results
+deduplicated_topics = client.deduplicate_topics(
+        topics=topics,
+        survey_context="context about survey, why, how of it...",
+    )
+
+print(deduplicated_topics)
 ```
 
 ## Automatic Batching for Large Datasets
@@ -89,13 +95,125 @@ Consolidated 30 topics into 25 unique topics
 
 This feature makes MALTopic suitable for processing large-scale survey datasets without worrying about token limitations.
 
+## Intelligent Topic Deduplication
+
+MALTopic v1.2.0 introduces intelligent topic deduplication that goes beyond simple string matching to provide semantic analysis and consolidation of similar topics.
+
+### How It Works
+
+1. **Semantic Analysis**: Uses LLM to analyze topic meanings, descriptions, and context rather than just comparing names.
+
+2. **Smart Merging**: Identifies topics with significant semantic overlap (>80% similarity) and intelligently merges them while preserving unique perspectives.
+
+3. **Structure Preservation**: Maintains the original topic structure and combines information from merged topics:
+   - **Names**: Chooses the most descriptive and comprehensive name
+   - **Descriptions**: Combines descriptions to capture all relevant aspects  
+   - **Relevance**: Merges relevance information from all source topics
+   - **Representative Words**: Combines word lists, removing duplicates
+
+4. **Quality Preservation**: Preserves genuinely unique topics that represent distinct concepts with no significant overlap.
+
+### Key Benefits
+
+- **Higher Quality Results**: Eliminates redundant or highly similar topics for cleaner analysis
+- **Semantic Understanding**: Goes beyond keyword matching to understand topic meanings
+- **Flexible Control**: Can be used optionally - existing workflows continue to work unchanged
+- **Robust Fallback**: Returns original topics unchanged if deduplication fails
+- **Context-Aware**: Uses survey context to make better merging decisions
+
+### Usage Example
+
+```python
+# Generate topics as usual
+topics = client.generate_topics(
+    topic_mining_context="Extract themes from customer feedback",
+    df=enriched_df,
+    enriched_column="feedback_enriched"
+)
+
+# Apply intelligent deduplication
+deduplicated_topics = client.deduplicate_topics(
+    topics=topics,
+    survey_context="Customer satisfaction survey for mobile app"
+)
+
+print(f"Original topics: {len(topics)}")
+print(f"After deduplication: {len(deduplicated_topics)}")
+```
+
+### Example Output
+
+When deduplication is applied, you'll see output like:
+```
+Deduplicated 15 topics into 12 unique topics
+```
+
+This feature is particularly useful when:
+- Working with large datasets that produce many overlapping topics
+- You need cleaner, more consolidated results for reporting
+- Multiple batches have generated similar topics that need consolidation
+
+## Method Reference
+
+### Core Methods
+
+#### `enrich_free_text_with_structured_data()`
+Enhances free-text survey responses with structured data context.
+
+**Parameters:**
+- `survey_context` (str): Context about the survey purpose and methodology
+- `free_text_column` (str): Name of the column containing free-text responses
+- `structured_data_columns` (list[str]): List of column names with structured data to use for enrichment
+- `df` (pandas.DataFrame): DataFrame containing the survey data
+- `examples` (list[str], optional): Examples of enrichment format
+
+**Returns:** DataFrame with enriched text in a new column with "_enriched" suffix
+
+#### `generate_topics()`
+Extracts latent themes and topics from enriched survey responses.
+
+**Parameters:**
+- `topic_mining_context` (str): Context about what kind of topics to extract
+- `df` (pandas.DataFrame): DataFrame containing enriched data
+- `enriched_column` (str): Name of the column containing enriched text
+
+**Returns:** List of topic dictionaries with structure:
+```python
+{
+    "name": "Topic Name",
+    "description": "Detailed description of the topic",
+    "relevance": "Who this topic is relevant to",
+    "representative_words": ["word1", "word2", "word3"]
+}
+```
+
+#### `deduplicate_topics()`
+Intelligently consolidates similar topics using semantic analysis.
+
+**Parameters:**
+- `topics` (list[dict]): List of topic dictionaries to deduplicate
+- `survey_context` (str): Context about the survey to help with merging decisions
+
+**Returns:** List of deduplicated topic dictionaries with the same structure as input
+
 ## Agents
 
 - **Enrichment Agent**: Enhances free-text responses using structured data.
 - **Topic Modeling Agent**: Extracts latent themes from enriched responses.
-- **Deduplication Agent**: Refines and consolidates the extracted topics. (not supported yet)
+- **Deduplication Agent**: Intelligently refines and consolidates the extracted topics using LLM-powered semantic analysis.
 
 ## Changelog
+
+For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
+
+### v1.2.0 (June 2025)
+- **NEW**: Intelligent topic deduplication using LLM-powered semantic analysis
+- **NEW**: `deduplicate_topics()` method for consolidating similar topics
+- **NEW**: Advanced topic merging that preserves meaningful distinctions
+- **NEW**: Context-aware deduplication that considers survey background
+- **NEW**: Robust error handling with fallback to original topics
+- **IMPROVED**: Enhanced topic quality through semantic consolidation
+- **IMPROVED**: Better user control over topic refinement process
 
 ### v1.1.0 (June 2025)
 - **NEW**: Automatic batching for large datasets that exceed LLM token limits

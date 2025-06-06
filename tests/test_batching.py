@@ -218,8 +218,6 @@ class TestGenerateTopicsWithBatching:
 
     def test_parse_topics_response_success(self):
         """Test successful parsing of topics response."""
-        m = MALTopic.__new__(MALTopic)
-
         json_response = """[
             {
                 "name": "Topic 1",
@@ -229,7 +227,7 @@ class TestGenerateTopicsWithBatching:
             }
         ]"""
 
-        topics = m._parse_topics_response(json_response)
+        topics = utils.parse_topics_response(json_response)
 
         assert len(topics) == 1
         assert topics[0]["name"] == "Topic 1"
@@ -237,17 +235,13 @@ class TestGenerateTopicsWithBatching:
 
     def test_parse_topics_response_json_error(self):
         """Test handling of invalid JSON in topics response."""
-        m = MALTopic.__new__(MALTopic)
-
         with pytest.raises(ValueError) as excinfo:
-            m._parse_topics_response("invalid json")
+            utils.parse_topics_response("invalid json")
 
         assert "Failed to parse LLM response as JSON" in str(excinfo.value)
 
     def test_consolidate_topics(self):
         """Test consolidation of topics from multiple batches."""
-        m = MALTopic.__new__(MALTopic)
-
         topics = [
             {"name": "Topic A", "description": "About A"},
             {"name": "Topic B", "description": "About B"},
@@ -255,7 +249,7 @@ class TestGenerateTopicsWithBatching:
             {"name": "Topic C", "description": "About C"},
         ]
 
-        consolidated = m._consolidate_topics(topics)
+        consolidated = utils.consolidate_topics(topics)
 
         # Should remove the duplicate "Topic A"
         assert len(consolidated) == 3
@@ -266,9 +260,7 @@ class TestGenerateTopicsWithBatching:
 
     def test_consolidate_topics_empty(self):
         """Test consolidation with empty input."""
-        m = MALTopic.__new__(MALTopic)
-
-        result = m._consolidate_topics([])
+        result = utils.consolidate_topics([])
         assert result == []
 
     @patch("src.maltopic.core.utils.split_text_into_batches")
