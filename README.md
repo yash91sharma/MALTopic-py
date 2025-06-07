@@ -12,6 +12,7 @@ MALTopic as a research paper was published in 2025 World AI IoT Congress. Links 
 - **Topic Deduplication**: Intelligently refines and consolidates identified topics using LLM-powered semantic analysis for better interpretability.
 - **Automatic Batching**: Handles large datasets by automatically splitting data into manageable batches when token limits are exceeded.
 - **Intelligent Error Handling**: Detects token limit errors and seamlessly switches to batching mode without user intervention.
+- **Comprehensive Statistics Tracking**: Automatically tracks LLM usage, token consumption, API performance, and costs with detailed metrics and reporting.
 
 ## Installation
 
@@ -56,6 +57,15 @@ deduplicated_topics = client.deduplicate_topics(
     )
 
 print(deduplicated_topics)
+
+# Access comprehensive statistics anytime
+stats = client.get_stats()
+print(f"Total tokens used: {stats['overview']['total_tokens_used']:,}")
+print(f"API calls made: {stats['overview']['total_calls_made']}")
+print(f"Success rate: {stats['overview']['success_rate_percent']}%")
+
+# Print detailed formatted statistics
+client.print_stats()
 ```
 
 ## Automatic Batching for Large Datasets
@@ -153,6 +163,92 @@ This feature is particularly useful when:
 - You need cleaner, more consolidated results for reporting
 - Multiple batches have generated similar topics that need consolidation
 
+## Comprehensive Statistics Tracking
+
+MALTopic includes built-in statistics tracking that automatically monitors your LLM usage, providing valuable insights into token consumption, API performance, and costs.
+
+### Key Metrics Tracked
+
+- **Token Usage**: Input, output, and total tokens from all API calls
+- **API Performance**: Call counts, success/failure rates, and response times  
+- **Model Breakdown**: Statistics separated by each model used
+- **Cost Monitoring**: Data needed to calculate estimated API costs
+- **Real-time Updates**: Statistics update automatically as you use the library
+
+### Accessing Statistics
+
+MALTopic provides three simple methods to access your usage statistics:
+
+```python
+# Get comprehensive statistics as a dictionary
+stats = client.get_stats()
+print(f"Total tokens used: {stats['overview']['total_tokens_used']:,}")
+print(f"Average response time: {stats['averages']['avg_response_time_seconds']:.2f}s")
+
+# Print a formatted summary to console
+client.print_stats()
+
+# Reset statistics to start fresh
+client.reset_stats()
+```
+
+### Example Statistics Output
+
+When you call `client.print_stats()`, you'll see output like:
+
+```
+============================================================
+MALTopic Library Usage Statistics
+============================================================
+
+📊 Overview:
+  Total Tokens Used: 2,450
+  - Input Tokens: 1,800
+  - Output Tokens: 650
+  Total API Calls: 8
+  - Successful: 8
+  - Failed: 0
+  Success Rate: 100.0%
+  Uptime: 125.3 seconds
+
+📈 Averages:
+  Avg Tokens per Call: 306.3
+  - Avg Input Tokens: 225.0
+  - Avg Output Tokens: 81.3
+  Avg Response Time: 2.15s
+
+🤖 Model Breakdown:
+  gpt-4:
+    Calls: 8 (Success: 8, Failed: 0)
+    Tokens: 2,450 (Avg: 306.3)
+    Success Rate: 100.0%
+============================================================
+```
+
+### Cost Estimation Example
+
+Use the statistics to estimate your API costs:
+
+```python
+stats = client.get_stats()
+
+# Example with GPT-4 pricing (as of 2024)
+input_cost = (stats['overview']['total_input_tokens'] / 1000) * 0.03  # $0.03 per 1K input tokens
+output_cost = (stats['overview']['total_output_tokens'] / 1000) * 0.06  # $0.06 per 1K output tokens
+total_estimated_cost = input_cost + output_cost
+
+print(f"Estimated API cost: ${total_estimated_cost:.4f}")
+```
+
+### Benefits
+
+- **Cost Control**: Monitor token usage to manage API expenses
+- **Performance Optimization**: Identify bottlenecks and optimize prompts
+- **Error Monitoring**: Track success rates to catch issues early
+- **Usage Insights**: Understand patterns across different models and operations
+
+Statistics tracking is **automatic** and **privacy-focused** - no data leaves your environment, and statistics are stored only in memory during your session.
+
 ## Method Reference
 
 ### Core Methods
@@ -196,6 +292,25 @@ Intelligently consolidates similar topics using semantic analysis.
 
 **Returns:** List of deduplicated topic dictionaries with the same structure as input
 
+#### `get_stats()`
+Returns comprehensive statistics about LLM usage and performance.
+
+**Returns:** Dictionary containing:
+- `overview`: Total tokens, calls, success rates, and uptime
+- `averages`: Average tokens per call, response times, etc.
+- `model_breakdown`: Statistics separated by model
+- `recent_calls`: Details of the most recent API calls
+
+#### `print_stats()`
+Prints a formatted summary of statistics to the console.
+
+**Returns:** None (prints to console)
+
+#### `reset_stats()`
+Resets all statistics to zero and starts tracking fresh.
+
+**Returns:** None
+
 ## Agents
 
 - **Enrichment Agent**: Enhances free-text responses using structured data.
@@ -205,6 +320,13 @@ Intelligently consolidates similar topics using semantic analysis.
 ## Changelog
 
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
+
+### v1.3.0 (June 2025)
+- **NEW**: Comprehensive statistics tracking with automatic LLM usage monitoring
+- **NEW**: `get_stats()`, `print_stats()`, and `reset_stats()` methods for statistics access
+- **NEW**: Real-time token usage, API performance, and cost monitoring
+- **NEW**: Model-specific statistics breakdown and detailed metrics
+- **IMPROVED**: Enhanced visibility into LLM usage patterns and costs
 
 ### v1.2.0 (June 2025)
 - **NEW**: Intelligent topic deduplication using LLM-powered semantic analysis

@@ -4,6 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from . import prompts, utils
+from .stats import MALTopicStats
 
 
 class MALTopic:
@@ -12,13 +13,15 @@ class MALTopic:
         self.default_model_name = default_model_name
         self.llm_type = llm_type.lower()
 
+        self.stats = MALTopicStats()
+
         self.llm_client = self._select_agent(api_key, default_model_name)
 
     def _select_agent(self, api_key: str, model_name: str):
         if self.llm_type == "openai":
             from .llms import openai
 
-            return openai.OpenAIClient(api_key, model_name)
+            return openai.OpenAIClient(api_key, model_name, stats_tracker=self.stats)
         raise ValueError("Invalid LLM api type. Choose 'openai'.")
 
     def enrich_free_text_with_structured_data(
@@ -186,3 +189,36 @@ class MALTopic:
             print("Warning: Topic deduplication failed: {str(e)}")
             print("Returning original topics without deduplication.")
             return topics.copy()
+
+    def get_stats(self) -> dict:
+        """
+        Get comprehensive usage statistics for the MALTopic instance.
+
+        Returns:
+            Dictionary containing detailed usage statistics including:
+            - Total tokens used (input, output, total)
+            - Number of API calls (successful, failed, total)
+            - Average tokens per call
+            - Success rate
+            - Model-specific breakdowns
+            - Recent call history
+        """
+        return self.stats.get_summary()
+
+    def print_stats(self):
+        """
+        Print a formatted summary of usage statistics to the console.
+
+        This method provides a user-friendly display of all tracked metrics
+        including token usage, API call statistics, and performance metrics.
+        """
+        self.stats.print_summary()
+
+    def reset_stats(self):
+        """
+        Reset all usage statistics to their initial state.
+
+        This method clears all tracked data and restarts the statistics
+        collection from a clean state.
+        """
+        self.stats.reset()

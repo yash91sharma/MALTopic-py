@@ -190,6 +190,16 @@ def generate_topics_from_text(
     Returns:
         List of topic dictionaries
     """
+    # Estimate input tokens if possible (for stats tracking when API doesn't provide them)
+    estimated_input_tokens = 0
+    if hasattr(llm_client, "model_name") and TIKTOKEN_AVAILABLE:
+        try:
+            combined_input = f"{instructions}\n\n{input_text}"
+            estimated_input_tokens = count_tokens(combined_input, llm_client.model_name)
+        except Exception:
+            # If token counting fails, continue without it
+            pass
+
     raw_response = llm_client.generate(instructions=instructions, input=input_text)
 
     return parse_topics_response(raw_response)
