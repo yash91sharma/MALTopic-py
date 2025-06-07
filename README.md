@@ -319,7 +319,7 @@ Resets all statistics to zero and starts tracking fresh.
 
 ## Changelog
 
-For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
+For detailed release notes and version history, see [CHANGELOG.md](https://github.com/yash91sharma/MALTopic-py/blob/master/CHANGELOG.md).
 
 ### v1.3.0 (June 2025)
 - **NEW**: Comprehensive statistics tracking with automatic LLM usage monitoring

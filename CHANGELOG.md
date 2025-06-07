@@ -5,6 +5,28 @@ All notable changes to MALTopic will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2025-06-07
+- Update changelog and readme files.
+
+## [1.3.0] - 2025-06-07
+
+### Added
+- **Comprehensive Statistics Tracking**: Automatic monitoring of LLM usage, token consumption, API performance, and costs
+- **New Methods**: `get_stats()`, `print_stats()`, and `reset_stats()` for accessing and managing statistics
+- **Model-Specific Statistics**: Detailed breakdown of usage and performance by model
+- **Real-Time Updates**: Statistics update automatically as the library is used
+- **Cost Monitoring**: Track data needed for API cost estimation
+- **Recent Calls**: Access details of the most recent API calls
+
+### Improved
+- Enhanced visibility into LLM usage patterns and costs
+- Improved documentation and usage examples for statistics features
+- More robust and user-friendly statistics reporting
+
+### Changed
+- Statistics tracking is now enabled by default and privacy-focused (in-memory only)
+- Updated documentation to reflect new statistics features
+
 ## [1.2.0] - 2025-06-06
 
 ### Added
