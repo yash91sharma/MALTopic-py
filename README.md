@@ -2,7 +2,7 @@
 
 MALTopic is a powerful library designed for topic modeling using a multi-agent approach. It leverages the capabilities of large language models (LLMs) to enhance the analysis of survey responses by integrating structured and unstructured data.
 
-MALTopic as a research paper was published in 2025 World AI IoT Congress. Links here.
+[MALTopic](https://ieeexplore.ieee.org/document/11105319) as a research paper was published in 2025 World AI IoT Congress.
 
 ## Features
 
