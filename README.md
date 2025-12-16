@@ -33,8 +33,8 @@ from maltopic import MALTopic
 client = MALTopic(
     api_key="your_api_key",
     default_model_name="gpt-4.1-nano",
-    llm_type="openai",
-)
+    llm_type="openai",    # Optional: override default model parameters
+    override_model_params=None,  # Use None for automatic parameter handling)
 
 enriched_df = client.enrich_free_text_with_structured_data(
         survey_context="context about survey, why, how of it...",
@@ -249,7 +249,110 @@ print(f"Estimated API cost: ${total_estimated_cost:.4f}")
 
 Statistics tracking is **automatic** and **privacy-focused** - no data leaves your environment, and statistics are stored only in memory during your session.
 
+## Model Parameter Control
+
+MALTopic provides flexible control over OpenAI API parameters through the `override_model_params` parameter. This gives you fine-grained control when needed while maintaining smart defaults.
+
+### Automatic Parameter Handling (Default)
+
+By default (`override_model_params=None`), MALTopic automatically handles parameters based on the model type:
+
+- **Regular models** (gpt-4, gpt-4o, etc.): Uses `temperature=0.2`, `top_p=0.9`, `seed=12345`
+- **Reasoning models** (o1, o3, gpt-5 series): Automatically excludes unsupported parameters like `temperature`, `top_p`, and `seed`
+
+```python
+# Automatic handling - recommended for most users
+client = MALTopic(
+    api_key="your_api_key",
+    default_model_name="gpt-4",
+    llm_type="openai"
+    # override_model_params=None is the default
+)
+```
+
+### Custom Parameters
+
+You can override the default parameters by providing a dictionary. This **completely replaces** the default parameters:
+
+```python
+# Use custom parameters
+client = MALTopic(
+    api_key="your_api_key",
+    default_model_name="gpt-4",
+    llm_type="openai",
+    override_model_params={
+        "temperature": 0.8,
+        "max_tokens": 500,
+        "top_p": 0.95,
+        "frequency_penalty": 0.5,
+    }
+)
+```
+
+### Reasoning Models with Custom Parameters
+
+For reasoning models (o1, o3, gpt-5 series), you can specify allowed parameters:
+
+```python
+# Only specify supported parameters for reasoning models
+client = MALTopic(
+    api_key="your_api_key",
+    default_model_name="gpt-5-mini",
+    llm_type="openai",
+    override_model_params={
+        "max_tokens": 1000,
+        # Don't include temperature, top_p, or seed for reasoning models
+    }
+)
+```
+
+### Minimal Parameters
+
+Use an empty dictionary to send only the base required parameters:
+
+```python
+# Minimal parameters - only model, messages, and store
+client = MALTopic(
+    api_key="your_api_key",
+    default_model_name="gpt-4",
+    llm_type="openai",
+    override_model_params={}
+)
+```
+
+### Key Points
+
+- **`None` (default)**: Automatic intelligent parameter handling based on model type
+- **Dictionary**: Your parameters completely replace the defaults
+- **Empty dict `{}`**: Only base required parameters are sent
+- **Flexibility**: Works with all OpenAI models, including future models
+
+### When to Use Custom Parameters
+
+- **Experimentation**: Testing different temperature or sampling settings
+- **Specific Requirements**: Your use case requires particular parameter values
+- **Token Limits**: Need to set `max_tokens` for cost control
+- **Advanced Features**: Using OpenAI features like `frequency_penalty` or `presence_penalty`
+
+For most users, the default automatic handling (`override_model_params=None`) is recommended as it ensures compatibility with all model types.
+
 ## Method Reference
+
+### Initialization
+
+#### `MALTopic()`
+Initializes the MALTopic client with API credentials and configuration.
+
+**Parameters:**
+- `api_key` (str): Your OpenAI API key
+- `default_model_name` (str): Model to use (e.g., "gpt-4", "gpt-5-mini", "o1-preview")
+- `llm_type` (str): LLM provider type (currently only "openai" is supported)
+- `override_model_params` (dict | None, optional): Custom parameters to override defaults. 
+  - `None` (default): Automatic parameter handling based on model type
+  - `dict`: Your parameters completely replace defaults
+  - `{}`: Only base required parameters
+
+**Returns:** MALTopic instance
 
 ### Core Methods
 
@@ -320,6 +423,14 @@ Resets all statistics to zero and starts tracking fresh.
 ## Changelog
 
 For detailed release notes and version history, see [CHANGELOG.md](https://github.com/yash91sharma/MALTopic-py/blob/master/CHANGELOG.md).
+
+### v1.4.0 (December 2025)
+- **NEW**: Model parameter control with `override_model_params` for fine-grained API configuration
+- **NEW**: Three flexible modes: automatic (default), custom parameters, or minimal parameters
+- **NEW**: Enhanced reasoning model support for o1, o3, and gpt-5 series
+- **IMPROVED**: Automatic parameter handling that prevents compatibility errors
+- **IMPROVED**: Better flexibility for power users needing custom parameters
+- **FIXED**: 400 errors with GPT-5 and reasoning models using unsupported parameters
 
 ### v1.3.0 (June 2025)
 - **NEW**: Comprehensive statistics tracking with automatic LLM usage monitoring

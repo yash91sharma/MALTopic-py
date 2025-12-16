@@ -13,6 +13,7 @@ class OpenAIClient:
         api_key: str,
         model_name: str,
         stats_tracker: Optional["MALTopicStats"] = None,
+        override_model_params: Optional[dict] = None,
     ):
         self.api_key = api_key
         self.model_name = model_name
@@ -21,22 +22,57 @@ class OpenAIClient:
         self.seed = 12345
         self.top_p = 0.9
         self.stats_tracker = stats_tracker
+        self.override_model_params = override_model_params
+
+    def _is_reasoning_model(self, model_name: str) -> bool:
+        """
+        Check if the model is a reasoning model that has parameter restrictions.
+        
+        These models don't support: temperature, top_p, presence_penalty, frequency_penalty, seed
+        
+        Includes:
+        - o1 series: o1-preview, o1-mini
+        - o3 series: o3, o3-mini, o3.5
+        - gpt-5 series: gpt-5-mini, gpt-5-preview, etc.
+        """
+        model_lower = model_name.lower()
+        
+        # Check for o1/o3 series
+        reasoning_prefixes = ['o1', 'o3']
+        if any(model_lower.startswith(prefix) for prefix in reasoning_prefixes):
+            return True
+        
+        # Check for gpt-5 series (reasoning models)
+        if 'gpt-5' in model_lower:
+            return True
+            
+        return False
 
     def generate(self, *, instructions: str, input: str) -> str:
         start_time = time.time()
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
-                store=False,
-                messages=[
+            # Build base parameters
+            params = {
+                "model": self.model_name,
+                "store": False,
+                "messages": [
                     {"role": "system", "content": instructions},
                     {"role": "user", "content": input},
                 ],
-                temperature=self.temperature,
-                top_p=self.top_p,
-                seed=self.seed,
-            )
+            }
+            
+            # If override_model_params is provided, use it exclusively
+            if self.override_model_params is not None:
+                params.update(self.override_model_params)
+            else:
+                # Only add sampling parameters if not a reasoning model
+                if not self._is_reasoning_model(self.model_name):
+                    params["temperature"] = self.temperature
+                    params["top_p"] = self.top_p
+                    params["seed"] = self.seed
+            
+            response = self.client.chat.completions.create(**params)
 
             response_time = time.time() - start_time
 

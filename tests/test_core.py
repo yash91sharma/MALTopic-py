@@ -88,6 +88,42 @@ class TestMALTopic:
         assert m.llm_type == "openai"
         assert m.llm_client == "client"
 
+    @patch("src.maltopic.core.MALTopic._select_agent")
+    def test_init_with_override_model_params(self, mock_select):
+        mock_select.return_value = "client"
+        override_params = {"temperature": 0.8, "max_tokens": 100}
+        m = MALTopic("key", "model", "openai", override_model_params=override_params)
+        assert m.api_key == "key"
+        assert m.default_model_name == "model"
+        assert m.llm_type == "openai"
+        assert m.override_model_params == override_params
+        assert m.llm_client == "client"
+
+    @patch("src.maltopic.llms.openai.OpenAI")
+    def test_select_agent_passes_override_params(self, mock_openai_class):
+        """Test that _select_agent passes override_model_params to OpenAIClient"""
+        m = MALTopic.__new__(MALTopic)
+        m.llm_type = "openai"
+        m.override_model_params = {"temperature": 0.7}
+        m.stats = MagicMock()
+        
+        # Mock the OpenAI class constructor
+        mock_client_instance = MagicMock()
+        mock_openai_class.return_value = mock_client_instance
+        
+        with patch("src.maltopic.llms.openai.OpenAIClient") as mock_openai_client:
+            mock_openai_client.return_value = "mocked_client"
+            result = m._select_agent("test_key", "test_model")
+            
+            # Verify OpenAIClient was called with override_model_params
+            mock_openai_client.assert_called_once_with(
+                "test_key",
+                "test_model",
+                stats_tracker=m.stats,
+                override_model_params={"temperature": 0.7},
+            )
+            assert result == "mocked_client"
+
     def test_select_agent_invalid_type(self):
         m = MALTopic.__new__(MALTopic)
         m.llm_type = "foo"

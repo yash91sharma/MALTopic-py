@@ -170,3 +170,156 @@ class TestOpenAIClient:
             assert "No content in the response message from OpenAI API." in str(e)
         else:
             assert False, "Expected ValueError for no content"
+
+    def test_is_reasoning_model_o1_series(self):
+        """Test that o1 models are correctly identified as reasoning models"""
+        client = OpenAIClient.__new__(OpenAIClient)
+        assert client._is_reasoning_model("o1-preview") is True
+        assert client._is_reasoning_model("o1-mini") is True
+        assert client._is_reasoning_model("O1-preview") is True  # case insensitive
+
+    def test_is_reasoning_model_o3_series(self):
+        """Test that o3 models are correctly identified as reasoning models"""
+        client = OpenAIClient.__new__(OpenAIClient)
+        assert client._is_reasoning_model("o3-mini") is True
+        assert client._is_reasoning_model("o3") is True
+        assert client._is_reasoning_model("O3-mini") is True  # case insensitive
+
+    def test_is_reasoning_model_gpt5_series(self):
+        """Test that gpt-5 models are correctly identified as reasoning models"""
+        client = OpenAIClient.__new__(OpenAIClient)
+        assert client._is_reasoning_model("gpt-5-mini") is True
+        assert client._is_reasoning_model("gpt-5-preview") is True
+        assert client._is_reasoning_model("GPT-5-mini") is True  # case insensitive
+
+    def test_is_not_reasoning_model(self):
+        """Test that regular GPT models are not identified as reasoning models"""
+        client = OpenAIClient.__new__(OpenAIClient)
+        assert client._is_reasoning_model("gpt-4") is False
+        assert client._is_reasoning_model("gpt-4-turbo") is False
+        assert client._is_reasoning_model("gpt-3.5-turbo") is False
+        assert client._is_reasoning_model("gpt-4o") is False
+        assert client._is_reasoning_model("gpt-4o-mini") is False
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_generate_excludes_params_for_reasoning_models(self):
+        """Test that temperature, top_p, and seed are not sent for reasoning models"""
+        client = OpenAIClient(api_key="k", model_name="o1-preview")
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        assert last_kwargs["model"] == "o1-preview"
+        assert last_kwargs["messages"] == [
+            {"role": "system", "content": "do this"},
+            {"role": "user", "content": "my input"},
+        ]
+        # These parameters should NOT be present for reasoning models
+        assert "temperature" not in last_kwargs
+        assert "top_p" not in last_kwargs
+        assert "seed" not in last_kwargs
+        assert last_kwargs["store"] is False
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_generate_includes_params_for_regular_models(self):
+        """Test that temperature, top_p, and seed ARE sent for regular models"""
+        client = OpenAIClient(api_key="k", model_name="gpt-4")
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        # These parameters SHOULD be present for regular models
+        assert "temperature" in last_kwargs
+        assert "top_p" in last_kwargs
+        assert "seed" in last_kwargs
+        assert last_kwargs["temperature"] == 0.2
+        assert last_kwargs["top_p"] == 0.9
+        assert last_kwargs["seed"] == 12345
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_override_model_params_with_custom_values(self):
+        """Test that override_model_params overrides all default parameters"""
+        override_params = {
+            "temperature": 0.8,
+            "max_tokens": 100,
+            "top_p": 0.95,
+        }
+        client = OpenAIClient(
+            api_key="k", model_name="gpt-4", override_model_params=override_params
+        )
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        # Override parameters should be present
+        assert last_kwargs["temperature"] == 0.8
+        assert last_kwargs["max_tokens"] == 100
+        assert last_kwargs["top_p"] == 0.95
+        # Default seed should NOT be present (not in override)
+        assert "seed" not in last_kwargs
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_override_model_params_for_reasoning_models(self):
+        """Test that override_model_params works even for reasoning models"""
+        override_params = {
+            "max_tokens": 500,
+        }
+        client = OpenAIClient(
+            api_key="k", model_name="o1-preview", override_model_params=override_params
+        )
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        # Override parameters should be present
+        assert last_kwargs["max_tokens"] == 500
+        # Default parameters should NOT be present
+        assert "temperature" not in last_kwargs
+        assert "top_p" not in last_kwargs
+        assert "seed" not in last_kwargs
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_override_model_params_empty_dict(self):
+        """Test that empty override_model_params dict removes all default parameters"""
+        client = OpenAIClient(
+            api_key="k", model_name="gpt-4", override_model_params={}
+        )
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        # No default parameters should be present
+        assert "temperature" not in last_kwargs
+        assert "top_p" not in last_kwargs
+        assert "seed" not in last_kwargs
+        # Only base parameters should be present
+        assert last_kwargs["model"] == "gpt-4"
+        assert last_kwargs["store"] is False
+        assert "messages" in last_kwargs
+
+    @patch(
+        "src.maltopic.llms.openai.OpenAI",
+        new=lambda api_key=None: DummyOpenAI(api_key=api_key, output_text="output"),
+    )
+    def test_override_model_params_none_uses_defaults(self):
+        """Test that override_model_params=None uses default behavior"""
+        client = OpenAIClient(
+            api_key="k", model_name="gpt-4", override_model_params=None
+        )
+        result = client.generate(instructions="do this", input="my input")
+        assert result == "output"
+        last_kwargs = client.client.chat.completions.last_kwargs  # type: ignore[attr-defined]
+        # Default parameters should be present for regular models
+        assert last_kwargs["temperature"] == 0.2
+        assert last_kwargs["top_p"] == 0.9
+        assert last_kwargs["seed"] == 12345

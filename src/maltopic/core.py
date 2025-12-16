@@ -8,10 +8,17 @@ from .stats import MALTopicStats
 
 
 class MALTopic:
-    def __init__(self, api_key: str, default_model_name: str, llm_type: str):
+    def __init__(
+        self,
+        api_key: str,
+        default_model_name: str,
+        llm_type: str,
+        override_model_params: dict | None = None,
+    ):
         self.api_key = api_key
         self.default_model_name = default_model_name
         self.llm_type = llm_type.lower()
+        self.override_model_params = override_model_params
 
         self.stats = MALTopicStats()
 
@@ -21,7 +28,12 @@ class MALTopic:
         if self.llm_type == "openai":
             from .llms import openai
 
-            return openai.OpenAIClient(api_key, model_name, stats_tracker=self.stats)
+            return openai.OpenAIClient(
+                api_key,
+                model_name,
+                stats_tracker=self.stats,
+                override_model_params=self.override_model_params,
+            )
         raise ValueError("Invalid LLM api type. Choose 'openai'.")
 
     def enrich_free_text_with_structured_data(

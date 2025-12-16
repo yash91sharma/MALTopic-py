@@ -5,6 +5,18 @@ All notable changes to MALTopic will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-12-16
+
+### Added
+- **Model Parameter Control**: New `override_model_params` parameter in `MALTopic` initialization for fine-grained control over OpenAI API parameters
+- **Flexible Configuration**: Three modes of operation:
+  - `None` (default): Automatic intelligent parameter handling based on model type
+  - `dict`: Custom parameters that completely replace defaults
+  - `{}`: Minimal parameters mode with only base required parameters
+
+### Fixed
+- Resolved 400 errors when using GPT-5 and reasoning models with unsupported parameters
+
 ## [1.3.2] - 2025-08-29
 - Added a link to the paper.
 
