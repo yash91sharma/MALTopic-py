@@ -1,10 +1,13 @@
 import json
+import logging
 
 import pandas as pd
 from tqdm import tqdm
 
 from . import prompts, utils
 from .stats import MALTopicStats
+
+logger = logging.getLogger(__name__)
 
 
 class MALTopic:
@@ -136,7 +139,7 @@ class MALTopic:
         except Exception as e:
             # Check if it's a token limit error
             if utils.is_token_limit_error(e):
-                print(f"Token limit exceeded, splitting into batches...")
+                logger.info("Token limit exceeded, splitting into batches...")
                 return utils.generate_topics_with_batching(
                     self.llm_client,
                     instructions,
@@ -192,14 +195,16 @@ class MALTopic:
             # Validate that the output maintains the same structure
             utils.validate_topic_structure(deduplicated_topics)
 
-            print(
-                f"Deduplicated {len(topics)} topics into {len(deduplicated_topics)} unique topics"
+            logger.info(
+                "Deduplicated %d topics into %d unique topics",
+                len(topics),
+                len(deduplicated_topics),
             )
             return deduplicated_topics
 
         except Exception as e:
-            print("Warning: Topic deduplication failed: {str(e)}")
-            print("Returning original topics without deduplication.")
+            logger.warning("Topic deduplication failed: %s", str(e))
+            logger.warning("Returning original topics without deduplication.")
             return topics.copy()
 
     def get_stats(self) -> dict:

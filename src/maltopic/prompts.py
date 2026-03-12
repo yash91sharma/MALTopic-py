@@ -1,8 +1,8 @@
 ENRICH_INST = (
-    "You are an AI language assistant. Your task is to help enrich the"
-    "free-text reponse with the structured data from survey responses."
+    "You are an AI language assistant. Your task is to help enrich the "
+    "free-text reponse with the structured data from survey responses. "
     "Enrich the free-text responses by summarizing them and injecting "
-    "crucial informationa and subtle details from the structured "
+    "crucial information and subtle details from the structured "
     "columns. This should help with more context aware topic modeling "
     "of the free-text responses. Survey context: {survey_context}. "
     "Enrich the {free_text_column} with the following structured "
@@ -16,7 +16,7 @@ ENRICH_INST = (
 
 TOPIC_INST = (
     "You are an AI NLP data analyst. Your goal is to analyze a set of survey "
-    "responses and identify unique, exhaustive, and non-overlapping topics."
+    "responses and identify unique, exhaustive, and non-overlapping topics. "
     "Survey context: {survey_context}. "
     "**Task:**"
     "1. **Analyze the following survey responses.**  For each response, "

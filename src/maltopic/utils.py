@@ -1,7 +1,10 @@
 import json
+import logging
 
 import pandas as pd
 from tqdm import tqdm
+
+logger = logging.getLogger(__name__)
 
 try:
     import tiktoken
@@ -239,7 +242,7 @@ def generate_topics_with_batching(
             for i in range(0, len(labeled_columns), batch_size)
         ]
 
-    print(f"Processing {len(batches)} batches...")
+    logger.info("Processing %d batches...", len(batches))
 
     all_topics = []
 
@@ -251,9 +254,9 @@ def generate_topics_with_batching(
                 llm_client, instructions, batch_input
             )
             all_topics.extend(batch_topics)
-            print(f"Batch {i+1}/{len(batches)}: Generated {len(batch_topics)} topics")
+            logger.info("Batch %d/%d: Generated %d topics", i + 1, len(batches), len(batch_topics))
         except Exception as e:
-            print(f"Error processing batch {i+1}: {str(e)}")
+            logger.error("Error processing batch %d: %s", i + 1, str(e))
             continue
 
     return consolidate_topics(all_topics)
@@ -315,7 +318,9 @@ def consolidate_topics(
             seen_names.add(topic_name)
             unique_topics.append(topic)
 
-    print(
-        f"Consolidated {len(all_topics)} topics into {len(unique_topics)} unique topics"
+    logger.info(
+        "Consolidated %d topics into %d unique topics",
+        len(all_topics),
+        len(unique_topics),
     )
     return unique_topics
