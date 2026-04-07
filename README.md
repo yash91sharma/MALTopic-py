@@ -22,6 +22,25 @@ To install the MALTopic library, you can use pip:
 pip install maltopic
 ```
 
+## GUI (No-Code Interface)
+
+MALTopic includes a built-in web-based GUI for non-technical users. After installing, simply run:
+
+```bash
+maltopic-gui
+```
+
+This launches a step-by-step wizard in your browser where you can:
+
+1. **Configure** your API key, model, and LLM provider
+2. **Upload** a CSV file and select your free-text and structured data columns
+3. **Enrich** free-text responses with structured data context
+4. **Generate topics** from the enriched data
+5. **Deduplicate** similar topics (optional)
+6. **Export** results — enriched CSV, topics JSON, and usage stats
+
+All processing happens locally on your machine. The only data sent externally is to your configured LLM provider (e.g. OpenAI) for enrichment and topic mining. You can also run the GUI with `python -m maltopic.gui`.
+
 ## Usage
 
 To use the MALTopic library, you need to initialize the main class with your API key and model name. You can choose between different LLMs such as OpenAI, Google Gemini (not supported yet), or Llama (not supported yet).

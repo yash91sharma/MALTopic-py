@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maltopic"
-version = "1.4.1"
+version = "1.5.0"
 description = "A multi-agent LLM topic modeling library."
 authors = ["Yash Sharma <yash91sharma@gmail.com>"]
 license = "MIT"
@@ -24,6 +24,11 @@ openai = "^1.79.0"
 pandas = "^2.2.3"
 tqdm = "^4.67.1"
 tiktoken = "^0.9.0"
+streamlit = "^1.28"
+
+
+[tool.poetry.scripts]
+maltopic-gui = "maltopic.gui:main"
 
 
 [build-system]

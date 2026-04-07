@@ -5,6 +5,11 @@ All notable changes to MALTopic will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-04-06
+
+### Added
+- **GUI**: New GUI mode, where users can use Maltopic without any code. Just enter `maltopic-gui` in the terminal after installing and get started.
+
 ## [1.4.1] - 2026-03-11
 
 ### Fixed
