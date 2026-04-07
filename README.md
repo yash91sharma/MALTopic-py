@@ -2,7 +2,7 @@
 
 MALTopic is a powerful library designed for topic modeling using a multi-agent approach. It leverages the capabilities of large language models (LLMs) to enhance the analysis of survey responses by integrating structured and unstructured data.
 
-[MALTopic](https://ieeexplore.ieee.org/document/11105319) as a research paper was published in 2025 World AI IoT Congress.
+[MALTopic](https://ieeexplore.ieee.org/document/11105319) as a research paper was published in 2025 World AI-IoT Congress.
 
 ## Features
 
@@ -441,45 +441,7 @@ Resets all statistics to zero and starts tracking fresh.
 
 ## Changelog
 
-For detailed release notes and version history, see [CHANGELOG.md](https://github.com/yash91sharma/MALTopic-py/blob/master/CHANGELOG.md).
-
-### v1.4.0 (December 2025)
-- **NEW**: Model parameter control with `override_model_params` for fine-grained API configuration
-- **NEW**: Three flexible modes: automatic (default), custom parameters, or minimal parameters
-- **NEW**: Enhanced reasoning model support for o1, o3, and gpt-5 series
-- **IMPROVED**: Automatic parameter handling that prevents compatibility errors
-- **IMPROVED**: Better flexibility for power users needing custom parameters
-- **FIXED**: 400 errors with GPT-5 and reasoning models using unsupported parameters
-
-### v1.3.0 (June 2025)
-- **NEW**: Comprehensive statistics tracking with automatic LLM usage monitoring
-- **NEW**: `get_stats()`, `print_stats()`, and `reset_stats()` methods for statistics access
-- **NEW**: Real-time token usage, API performance, and cost monitoring
-- **NEW**: Model-specific statistics breakdown and detailed metrics
-- **IMPROVED**: Enhanced visibility into LLM usage patterns and costs
-
-### v1.2.0 (June 2025)
-- **NEW**: Intelligent topic deduplication using LLM-powered semantic analysis
-- **NEW**: `deduplicate_topics()` method for consolidating similar topics
-- **NEW**: Advanced topic merging that preserves meaningful distinctions
-- **NEW**: Context-aware deduplication that considers survey background
-- **NEW**: Robust error handling with fallback to original topics
-- **IMPROVED**: Enhanced topic quality through semantic consolidation
-- **IMPROVED**: Better user control over topic refinement process
-
-### v1.1.0 (June 2025)
-- **NEW**: Automatic batching for large datasets that exceed LLM token limits
-- **NEW**: Intelligent token counting using tiktoken for optimal batch sizing
-- **NEW**: Automatic error detection and seamless fallback to batching mode
-- **NEW**: Topic consolidation and deduplication across batches
-- **NEW**: Progress tracking for batch processing operations
-- **IMPROVED**: Enhanced error handling and user feedback
-- **IMPROVED**: Graceful degradation when tiktoken is not available
-
-### v1.0.0 (May 2025)
-- Multi-agent framework for topic modeling
-- Data enrichment capabilities  
-- Basic topic extraction functionality
+For release notes and version history, see [CHANGELOG.md](https://github.com/yash91sharma/MALTopic-py/blob/master/CHANGELOG.md).
 
 ## Contributing
 

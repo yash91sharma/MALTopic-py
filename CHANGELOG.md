@@ -5,17 +5,22 @@ All notable changes to MALTopic will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] - 2026-04-06
+## [1.5.1] - 06 April, 2026
+
+### Improved
+- Improved documentation
+
+## [1.5.0] - 06 April, 2026
 
 ### Added
 - **GUI**: New GUI mode, where users can use Maltopic without any code. Just enter `maltopic-gui` in the terminal after installing and get started.
 
-## [1.4.1] - 2026-03-11
+## [1.4.1] - 11 March, 2026
 
 ### Fixed
 - Minor code/maintenance improvements.
 
-## [1.4.0] - 2025-12-16
+## [1.4.0] - 16 December, 2025
 
 ### Added
 - **Model Parameter Control**: New `override_model_params` parameter in `MALTopic` initialization for fine-grained control over OpenAI API parameters
@@ -27,13 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Resolved 400 errors when using GPT-5 and reasoning models with unsupported parameters
 
-## [1.3.2] - 2025-08-29
+## [1.3.2] - 29 August, 2025
 - Added a link to the paper.
 
-## [1.3.1] - 2025-06-07
+## [1.3.1] - 07 June, 2025
 - Update changelog and readme files.
 
-## [1.3.0] - 2025-06-07
+## [1.3.0] - 07 June, 2025
 
 ### Added
 - **Comprehensive Statistics Tracking**: Automatic monitoring of LLM usage, token consumption, API performance, and costs
@@ -52,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statistics tracking is now enabled by default and privacy-focused (in-memory only)
 - Updated documentation to reflect new statistics features
 
-## [1.2.0] - 2025-06-06
+## [1.2.0] - 06 June, 2025
 
 ### Added
 - **Intelligent Topic Deduplication**: New `deduplicate_topics()` method that uses LLM-powered semantic analysis to consolidate similar topics
@@ -75,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated project description to highlight intelligent deduplication capabilities
 - Deduplication Agent is now fully supported (removed "not supported yet" notation)
 
-## [1.1.0] - 2025-06-01
+## [1.1.0] - 01 June, 2025
 
 ### Added
 - **Automatic Batching**: Intelligent handling of large datasets that exceed LLM token limits
@@ -90,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better performance for large-scale survey datasets
 - No code changes required - existing workflows continue to work
 
-## [1.0.0] - 2025-05-01
+## [1.0.0] - 01 June, 2025
 
 ### Added
 - **Multi-Agent Framework**: Core architecture for topic modeling using specialized LLM agents
@@ -104,21 +109,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License
 - Basic documentation and usage examples
 
-### Infrastructure
-- Poetry-based project structure
-- Python 3.12+ support
-- Core dependencies: openai, pandas, tqdm, tiktoken
-- Automated testing with pytest
-- Package publishing to PyPI
-
 ---
-
-## Legend
-
-- **Added**: New features
-- **Changed**: Changes in existing functionality  
-- **Deprecated**: Soon-to-be removed features
-- **Removed**: Removed features
-- **Fixed**: Bug fixes
-- **Security**: Security improvements
-- **Improved**: Enhancements to existing features
